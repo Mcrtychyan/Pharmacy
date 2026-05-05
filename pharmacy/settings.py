@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'catalog',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +54,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'PharmacyDB',
-        'USER': 'admin',
+        'USER': 'postgres',
         'PASSWORD': 'admin',
         'HOST': 'localhost',
         'PORT': '5432',
