@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Оставить отзыв - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star text-warning"></i>
+                        Оставить отзыв на товар: {{ product.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Рейтинг -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ваша оценка</label>
+                            <div class="rating-input">
+                                <div class="stars">
+                                    <i class="far fa-star" data-value="1"></i>
+                                    <i class="far fa-star" data-value="2"></i>
+                                    <i class="far fa-star" data-value="3"></i>
+                                    <i class="far fa-star" data-value="4"></i>
+                                    <i class="far fa-star" data-value="5"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="rating-value" required>
+                            </div>
+                            <small class="text-muted">Выберите количество звезд (1-5)</small>
+                        </div>
+
+                        <!-- Комментарий -->
+                        <div class="mb-4">
+                            <label for="comment" class="form-label fw-bold">Ваш комментарий</label>
+                            <textarea name="comment" id="comment" class="form-control" rows="5"
+                                      placeholder="Расскажите о своем опыте использования товара..." required></textarea>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-paper-plane"></i> Отправить отзыв
+                            </button>
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-input {
+        margin: 10px 0;
+    }
+    .stars {
+        display: flex;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .stars i {
+        font-size: 32px;
+        transition: all 0.2s;
+        color: #ddd;
+    }
+    .stars i:hover,
+    .stars i.active {
+        color: #f39c12;
+    }
+    .stars i:hover ~ i {
+        color: #ddd;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('.stars i');
+        const ratingInput = document.getElementById('rating-value');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = parseInt(this.dataset.value);
+                ratingInput.value = value;
+
+                stars.forEach((s, index) => {
+                    if (index < value) {
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                        s.classList.remove('active');
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

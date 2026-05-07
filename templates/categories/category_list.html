@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Все категории - Аптека{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'index' %}">Главная</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Категории</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-3">Категории товаров</h1>
+        <p class="text-muted lead">Выберите интересующую вас категорию</p>
+    </div>
+
+    <!-- Список всех категорий -->
+    <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'category_detail' category.slug %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 category-card text-center p-4">
+                    <div class="category-icon mb-3">
+                        {% if category.name == "Лекарства" %}
+                            <i class="fas fa-pills fa-4x text-primary"></i>
+                        {% elif category.name == "Витамины" %}
+                            <i class="fas fa-apple-alt fa-4x text-warning"></i>
+                        {% elif category.name == "Антибиотики" %}
+                            <i class="fas fa-biohazard fa-4x text-danger"></i>
+                        {% elif category.name == "БАДы" %}
+                            <i class="fas fa-leaf fa-4x text-success"></i>
+                        {% elif category.name == "Медицинские изделия" %}
+                            <i class="fas fa-heartbeat fa-4x text-info"></i>
+                        {% elif category.name == "Косметика" %}
+                            <i class="fas fa-spa fa-4x text-secondary"></i>
+                        {% else %}
+                            <i class="fas fa-capsules fa-4x text-muted"></i>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-2 text-dark">{{ category.name }}</h5>
+                    <p class="text-muted small mb-2">{{ category.description|truncatewords:10 }}</p>
+                    <div class="mt-2">
+                        <span class="badge bg-primary rounded-pill">{{ category.products.count }} товаров</span>
+                    </div>
+                    {% if category.is_active %}
+                        <small class="text-success mt-2">
+                            <i class="fas fa-check-circle"></i> Активна
+                        </small>
+                    {% else %}
+                        <small class="text-muted mt-2">
+                            <i class="fas fa-clock"></i> Скоро
+                        </small>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-folder-open fa-5x text-muted mb-3"></i>
+                <h4>Категории не найдены</h4>
+                <p class="text-muted">В данный момент категории отсутствуют</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Блок информации -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 bg-light shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <h5 class="mb-3">Не нашли нужный товар?</h5>
+                    <p class="text-muted mb-3">
+                        Воспользуйтесь поиском или свяжитесь с нами для консультации
+                    </p>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-phone-alt"></i> Связаться с нами
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+
+    .category-card .category-icon i {
+        transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .category-icon i {
+        transform: scale(1.1);
+    }
+
+    .breadcrumb a {
+        text-decoration: none;
+        color: #2ecc71;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}

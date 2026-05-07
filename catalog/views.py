@@ -1,5 +1,3 @@
-from gc import get_objects
-
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
@@ -17,9 +15,11 @@ def index(request):
     }
     return render(request, 'index.html', context)
 
+
 def category_list(request):
     categories = Category.objects.filter(is_active=True)
     return render(request, 'categories/category_list.html', context={'categories': categories})
+
 
 def category_detail(request, slug):
     category = get_object_or_404(Category, slug=slug, is_active=True)
@@ -36,6 +36,7 @@ def category_detail(request, slug):
 
     return render(request, 'categories/category_detail.html', context)
 
+
 def product_list(request):
     products = Product.objects.all().order_by('-created_at')
 
@@ -45,8 +46,9 @@ def product_list(request):
 
     return render(request, 'products/product_list.html', {'products': page_obj})
 
-def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug)
+
+def product_detail(request, pk):
+    product = get_object_or_404(Product, pk=pk)
     reviews = UserReviews.objects.filter(medicine=product)
 
     context = {
@@ -54,6 +56,7 @@ def product_detail(request, slug):
         'reviews': reviews,
     }
     return render(request, 'products/product_detail.html', context)
+
 
 def cart_detail(request):
     cart = request.session.get('cart', {})
@@ -76,13 +79,15 @@ def cart_detail(request):
     }
     return render(request, 'cart/detail.html', context)
 
+
 def add_to_cart(request, product_id):
     cart = request.session.get('cart', {})
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     request.session['cart'] = cart
 
     messages.success(request, 'Товар добавлен в корзину')
-    return redirect('catalog:cart_detail')
+    next_url = request.META.get('HTTP_REFERER', '/')
+    return redirect(next_url)
 
 
 def remove_from_cart(request, product_id):
@@ -96,8 +101,9 @@ def remove_from_cart(request, product_id):
 
 
 def order_list(request):
-    orders = Orders.objects.all().order_by('-order_at')
+    orders = Orders.objects.all().order_by('-order_date')
     return render(request, 'orders/order_list.html', {'orders': orders})
+
 
 def order_detail(request, order_id):
     order = get_object_or_404(Orders, id=order_id)
@@ -109,6 +115,7 @@ def order_detail(request, order_id):
     }
     return render(request, 'orders/order_detail.html', context)
 
+
 def add_reviews(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
@@ -116,14 +123,29 @@ def add_reviews(request, product_id):
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
 
-        UserReviews.objects.create(
-            rating=rating,
-            comment=comment,
-            user_id=1,
-            medicine_id=product.id
-        )
+        if rating and comment:
+            # Проверяем, есть ли уже отзыв
+            existing_review = UserReviews.objects.filter(
+                user_id=1,  # Временно
+                medicine=product
+            ).first()
 
-        messages.success(request, 'Спасибо за отзыв!')
-        return redirect('catalog:order_detail', slug=product.id)
+            if existing_review:
+                messages.warning(request, 'Вы уже оставляли отзыв на этот товар')
+            else:
+                UserReviews.objects.create(
+                    rating=int(rating),
+                    comment=comment,
+                    user_id=1,  # Временно
+                    medicine=product
+                )
+                messages.success(request, 'Спасибо за ваш отзыв!')
+        else:
+            messages.error(request, 'Пожалуйста, заполните все поля')
 
-    return render(request, 'reviews/review_form.html.html', {'product': product})
+        return redirect('catalog:product_detail', pk=product.id)
+
+    return render(request, 'reviews/review_form.html', {'product': product})
+
+def contacts(request):
+    return render(request, 'components/contacts.html')

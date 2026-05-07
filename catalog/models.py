@@ -41,6 +41,8 @@ class Product(models.Model):
         verbose_name='Название лекарства'
     )
 
+    slug = models.SlugField(max_length=100, unique=True, blank=True, verbose_name='URL')
+
     description = models.TextField(
         max_length=2000,
         verbose_name='Описание лекарства'
@@ -74,6 +76,11 @@ class Product(models.Model):
         auto_now_add=True,
         verbose_name='Дата создания'
     )
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self.name.lower().replace(' ', '-')
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "товар"
