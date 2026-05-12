@@ -13,6 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form method="get">
+                        {% csrf_token %}
                         <label class="fw-bold mb-2">Цена</label>
                         <div class="mb-3">
                             <input type="number" name="min_price" placeholder="От" class="form-control mb-2">

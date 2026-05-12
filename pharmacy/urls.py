@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth.views import LogoutView
 
+from users import views as users
 from catalog.views import *
+from users.forms import RegisterForm
 
 app_name = 'catalog'
 
@@ -18,5 +21,7 @@ urlpatterns = [
     path('cart/add/<int:product_id>/', add_to_cart, name='add_to_cart'),
     path('cart/remove/<int:product_id>/', remove_from_cart, name='remove_from_cart'),
 
-    path('reviews/add/<int:product_id>/', add_reviews, name='add_reviews'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('register/', users.register_view, name='register'),
+    path('login/', users.login_view, name='login'),
 ]

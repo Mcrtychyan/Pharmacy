@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 
-from catalog.models import Category, Product, MedicineType, MedicineComponent, UserReviews, Orders, OrderMedicine
+from catalog.models import Category, Product, MedicineType, MedicineComponent, Orders, OrderMedicine
 
 
 def index(request):
@@ -49,11 +49,10 @@ def product_list(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    reviews = UserReviews.objects.filter(medicine=product)
+
 
     context = {
         'product': product,
-        'reviews': reviews,
     }
     return render(request, 'products/product_detail.html', context)
 
@@ -116,36 +115,7 @@ def order_detail(request, order_id):
     return render(request, 'orders/order_detail.html', context)
 
 
-def add_reviews(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
 
-    if request.method == 'POST':
-        rating = request.POST.get('rating')
-        comment = request.POST.get('comment')
-
-        if rating and comment:
-            # Проверяем, есть ли уже отзыв
-            existing_review = UserReviews.objects.filter(
-                user_id=1,  # Временно
-                medicine=product
-            ).first()
-
-            if existing_review:
-                messages.warning(request, 'Вы уже оставляли отзыв на этот товар')
-            else:
-                UserReviews.objects.create(
-                    rating=int(rating),
-                    comment=comment,
-                    user_id=1,  # Временно
-                    medicine=product
-                )
-                messages.success(request, 'Спасибо за ваш отзыв!')
-        else:
-            messages.error(request, 'Пожалуйста, заполните все поля')
-
-        return redirect('catalog:product_detail', pk=product.id)
-
-    return render(request, 'reviews/review_form.html', {'product': product})
 
 def contacts(request):
     return render(request, 'components/contacts.html')

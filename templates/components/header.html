@@ -19,21 +19,43 @@
 
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link position-relative" href="{% url 'cart_detail' %}">
+                    <a class="nav-link position-relative cart-icon" href="{% url 'cart_detail' %}">
                         <i class="fas fa-shopping-cart fa-lg"></i>
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge">
+                            0
+                        </span>
                     </a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user"></i> Аккаунт
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle"></i> Профиль</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-list"></i> Мои заказы</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> Выход</a></li>
-                    </ul>
-                </li>
+
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle user-dropdown" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-dropdown">
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item logout-btn">
+                                        <i class="fas fa-sign-out-alt text-danger me-2"></i> Выход
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link btn-login" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Вход
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-register" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>
@@ -47,45 +69,208 @@
         <div class="collapse navbar-collapse" id="categoryNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'index' %}">
+                    <a class="nav-link category-link" href="{% url 'index' %}">
                         <i class="fas fa-home"></i> Главная
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'product_list' %}">
+                    <a class="nav-link category-link" href="{% url 'product_list' %}">
                         <i class="fas fa-pills"></i> Все товары
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'category_list' %}">
+                    <a class="nav-link category-link" href="{% url 'category_list' %}">
                         <i class="fas fa-tags"></i> Категории
                     </a>
                 </li>
-                <li class="nav-item dropdown">
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Противовирусные</a></li>
-                        <li><a class="dropdown-item" href="#">Антибиотики</a></li>
-                        <li><a class="dropdown-item" href="#">Обезболивающие</a></li>
-                        <li><a class="dropdown-item" href="#">Витамины</a></li>
-                    </ul>
+                <li class="nav-item">
+                    <a class="nav-link category-link" href="{% url 'contacts' %}">
+                        <i class="fas fa-phone"></i> Контакты
+                    </a>
                 </li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'contacts' %}">
-        <i class="fas fa-phone"></i> Контакты
-    </a>
-</li>
             </ul>
         </div>
     </div>
 </nav>
+
+<style>
+    /* Стили для кнопок входа/регистрации */
+    .btn-login, .btn-register {
+        border-radius: 25px !important;
+        padding: 8px 20px !important;
+        margin: 0 5px !important;
+        transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+    }
+
+    .btn-login {
+        background: transparent !important;
+        border: 2px solid rgba(255,255,255,0.5) !important;
+    }
+
+    .btn-login:hover {
+        background: rgba(255,255,255,0.1) !important;
+        border-color: white !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+        border: none !important;
+    }
+
+    .btn-register:hover {
+        background: linear-gradient(135deg, #27ae60, #229954) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(46,204,113,0.3);
+    }
+
+    /* Стиль для иконки корзины */
+    .cart-icon {
+        position: relative;
+        transition: all 0.3s ease !important;
+    }
+
+    .cart-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .cart-badge {
+        font-size: 10px !important;
+        padding: 3px 6px !important;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* Стиль для выпадающего меню пользователя */
+    .user-dropdown {
+        border-radius: 25px !important;
+        padding: 8px 15px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .user-dropdown:hover {
+        background: rgba(255,255,255,0.1) !important;
+        border-radius: 25px !important;
+    }
+
+    .dropdown-menu {
+        border-radius: 15px !important;
+        margin-top: 10px !important;
+        animation: fadeInDown 0.3s ease;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdown-item {
+        padding: 10px 20px !important;
+        transition: all 0.2s ease !important;
+        border-radius: 10px !important;
+        margin: 2px 5px !important;
+    }
+
+    .dropdown-item:hover {
+        background: #f8f9fa !important;
+        transform: translateX(5px);
+    }
+
+    .logout-btn {
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .logout-btn:hover {
+        background: #f8f9fa !important;
+    }
+
+    /* Стили для категорий */
+    .category-link {
+        position: relative;
+        padding: 10px 15px !important;
+        margin: 0 5px !important;
+        transition: all 0.3s ease !important;
+        color: #2c3e50 !important;
+        font-weight: 500 !important;
+    }
+
+    .category-link:hover {
+        color: #2ecc71 !important;
+        transform: translateY(-2px);
+    }
+
+    .category-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: #2ecc71;
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+
+    .category-link:hover::after {
+        width: 70%;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .btn-login, .btn-register {
+            margin: 5px 0 !important;
+            text-align: center;
+        }
+
+        .user-dropdown {
+            margin: 5px 0 !important;
+        }
+
+        .cart-icon {
+            margin: 5px 0 !important;
+        }
+    }
+</style>
 
 <script>
     function updateCartCount() {
         fetch('/api/cart/count/')
             .then(response => response.json())
             .then(data => {
-                document.getElementById('cart-count').innerText = data.count;
-            });
+                const cartCount = document.getElementById('cart-count');
+                if (cartCount) {
+                    const count = data.count || 0;
+                    cartCount.innerText = count;
+                    if (count === 0) {
+                        cartCount.style.display = 'none';
+                    } else {
+                        cartCount.style.display = 'inline-block';
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
     }
     updateCartCount();
 </script>

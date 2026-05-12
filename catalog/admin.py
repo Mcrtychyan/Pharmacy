@@ -4,7 +4,6 @@ from django.utils.html import format_html
 from .models import (
     Category, MedicineType, Product, Component,
     MedicineComponent, Orders, OrderMedicine,
-    User, UserReviews
 )
 
 
@@ -107,39 +106,3 @@ class OrderMedicineAdmin(admin.ModelAdmin):
     search_fields = ('order__id', 'medicine__name')
 
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'last_name', 'first_name', 'email', 'phone')
-    list_filter = ('date_dirth',)
-    search_fields = ('name', 'surname', 'email', 'phone')
-    ordering = ('surname', 'name')
-    readonly_fields = ('email',)
-
-    def last_name(self, obj):
-        return obj.surname
-
-    last_name.short_description = 'Фамилия'
-
-    def first_name(self, obj):
-        return obj.name
-
-    first_name.short_description = 'Имя'
-
-
-@admin.register(UserReviews)
-class UserReviewsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'medicine', 'rating', 'reviews_date')
-    list_filter = ('rating', 'reviews_date', 'medicine')
-    search_fields = ('user__name', 'user__surname', 'medicine__name', 'comment')
-    ordering = ('-reviews_date',)
-    readonly_fields = ('reviews_date',)
-
-    fieldsets = (
-        ('Информация об отзыве', {
-            'fields': ('user', 'medicine', 'rating', 'comment')
-        }),
-        ('Дата', {
-            'fields': ('reviews_date',),
-            'classes': ('collapse',)
-        }),
-    )
