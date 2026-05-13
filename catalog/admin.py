@@ -15,6 +15,20 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
+    def icon_preview(self, obj):
+        if obj.icon_image:
+            return format_html(
+                '<img src="{}" width="40" height="40" style="border-radius: 8px; object-fit: cover;" />',
+                obj.icon_image.url
+            )
+        elif obj.icon:
+            return format_html(
+                '<i class="fas {}" style="font-size: 24px; color: #2ecc71;"></i>',
+                obj.icon
+            )
+        return '-'
+
+    icon_preview.short_description = 'Иконка'
 
 @admin.register(MedicineType)
 class MedicineTypeAdmin(admin.ModelAdmin):
@@ -47,12 +61,23 @@ class ProductAdmin(admin.ModelAdmin):
         ('Цены и наличие', {
             'fields': ('price', 'quantity')
         }),
+        ('Изображение', {  # ЭТОТ БЛОК ДОЛЖЕН БЫТЬ
+            'fields': ('image',),
+        }),
         ('Системная информация', {
             'fields': ('created_at',),
             'classes': ('collapse',)
         }),
     )
 
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="100" height="100" style="border-radius: 8px; object-fit: cover;" />',
+                obj.image.url
+            )
+        return 'Нет изображения'
+    image_preview.short_description = 'Превью'
 
 @admin.register(Component)
 class ComponentAdmin(admin.ModelAdmin):

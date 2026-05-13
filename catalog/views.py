@@ -39,7 +39,6 @@ def category_detail(request, slug):
 
 def product_list(request):
     products = Product.objects.all().order_by('-created_at')
-
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -49,7 +48,6 @@ def product_list(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
-
 
     context = {
         'product': product,
@@ -113,8 +111,6 @@ def order_detail(request, order_id):
         'order_items': order_items,
     }
     return render(request, 'orders/order_detail.html', context)
-
-
 
 
 def contacts(request):

@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth.views import LogoutView
-
+from django.conf.urls.static import static
+from pharmacy import settings
 from users import views as users
 from catalog.views import *
 from users.forms import RegisterForm
-
+from catalog.views import index
 app_name = 'catalog'
 
 urlpatterns = [
@@ -24,4 +25,9 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('register/', users.register_view, name='register'),
     path('login/', users.login_view, name='login'),
+
+    path('', index, name='index'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

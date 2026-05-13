@@ -15,6 +15,14 @@ class Category(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True,)
 
+    icon_image = models.ImageField(
+        upload_to='category_icons/',
+        blank=True,
+        null=True,
+        verbose_name='Иконка (изображение)',
+        help_text='Загрузите свою иконку (рекомендуемый размер: 64x64 пикселей)'
+    )
+
     class Meta:
         verbose_name = "категория"
         verbose_name_plural = "категории"
@@ -75,6 +83,14 @@ class Product(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания'
+    )
+
+    image = models.ImageField(
+        upload_to='product_images/',
+        blank=True,
+        null=True,
+        verbose_name='Изображение товара',
+        help_text='Загрузите фото товара (рекомендуемый размер: 300x300 пикселей)'
     )
 
     def save(self, *args, **kwargs):
