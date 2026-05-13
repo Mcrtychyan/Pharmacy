@@ -12,7 +12,7 @@
                         <i class="fas fa-filter"></i> Фильтры
                     </div>
                     <div class="card-body">
-                        <form method="get">
+                        <form method="get" id="filterForm">
                             <label class="fw-bold mb-2">Цена</label>
                             <div class="mb-3">
                                 <input type="number" name="min_price" placeholder="От" class="form-control mb-2"
@@ -20,7 +20,14 @@
                                 <input type="number" name="max_price" placeholder="До" class="form-control"
                                        value="{{ request.GET.max_price }}">
                             </div>
+                            <!-- Сохраняем сортировку при отправке фильтра -->
+                            {% if request.GET.sort %}
+                                <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+                            {% endif %}
                             <button type="submit" class="btn btn-primary w-100">Применить</button>
+                            {% if request.GET.min_price or request.GET.max_price or request.GET.sort %}
+                                <a href="{% url 'product_list' %}" class="btn btn-secondary w-100 mt-2">Сбросить</a>
+                            {% endif %}
                         </form>
                     </div>
                 </div>
@@ -30,18 +37,9 @@
             <div class="col-md-9">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3>Все товары</h3>
-                    <select class="form-select w-auto" onchange="window.location.href=this.value">
-                        <option value="?sort=created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>По
-                            новизне
-                        </option>
-                        <option value="?sort=price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>По
-                            возрастанию цены
-                        </option>
-                        <option value="?sort=price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>По
-                            убыванию цены
-                        </option>
-                        <option value="?sort=name" {% if request.GET.sort == 'name' %}selected{% endif %}>По названию
-                        </option>
+                    <select class="form-select w-auto" id="sortSelect">
+                        <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>По возрастанию цены</option>
+                        <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>По убыванию цены</option>
                     </select>
                 </div>
 
@@ -51,12 +49,12 @@
                             <div class="card h-100 border-0 shadow-sm product-card">
                                 <div class="card-body text-center">
                                     <!-- Изображение товара -->
-                                    {{% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}"
-                                         style="width: 100%; height: 150px; object-fit: contain; margin-bottom: 15px;">
-                                {% else %}
-                                    <i class="fas fa-capsules fa-4x text-primary mb-3" style="font-size: 60px;"></i>
-                                {% endif %}
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                             style="width: 100%; height: 150px; object-fit: contain; margin-bottom: 15px;">
+                                    {% else %}
+                                        <i class="fas fa-capsules fa-4x text-primary mb-3" style="font-size: 60px;"></i>
+                                    {% endif %}
 
                                     <h6 class="card-title">{{ product.name }}</h6>
                                     <div class="h5 text-danger fw-bold mb-2">{{ product.price }} ₽</div>
@@ -79,7 +77,12 @@
                             </div>
                         </div>
                     {% empty %}
-                        <p class="text-center">Товары не найдены</p>
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-box-open fa-5x text-muted mb-3"></i>
+                            <h4>Товары не найдены</h4>
+                            <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+                            <a href="{% url 'product_list' %}" class="btn btn-primary">Сбросить фильтры</a>
+                        </div>
                     {% endfor %}
                 </div>
 
@@ -87,19 +90,24 @@
                     <nav class="mt-5">
                         <ul class="pagination justify-content-center">
                             {% if products.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page=
-                                        {{ products.previous_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Назад</a>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.previous_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        Назад
+                                    </a>
                                 </li>
                             {% endif %}
                             {% for num in products.paginator.page_range %}
                                 <li class="page-item {% if products.number == num %}active{% endif %}">
-                                    <a class="page-link" href="?page=
-                                            {{ num }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                                    <a class="page-link" href="?page={{ num }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        {{ num }}
+                                    </a>
                                 </li>
                             {% endfor %}
                             {% if products.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page=
-                                        {{ products.next_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Вперед</a>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ products.next_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                        Вперед
+                                    </a>
                                 </li>
                             {% endif %}
                         </ul>
@@ -128,4 +136,29 @@
             transform: scale(1.05);
         }
     </style>
+
+    <script>
+        // Скрипт для автоматической сортировки при изменении select
+        document.getElementById('sortSelect').addEventListener('change', function() {
+            const currentUrl = new URL(window.location.href);
+            const sortValue = this.value;
+
+            // Получаем текущие параметры фильтрации
+            const minPrice = currentUrl.searchParams.get('min_price');
+            const maxPrice = currentUrl.searchParams.get('max_price');
+
+            // Строим новый URL
+            let newUrl = window.location.pathname + '?';
+            const params = [];
+
+            if (minPrice) params.push('min_price=' + minPrice);
+            if (maxPrice) params.push('max_price=' + maxPrice);
+            if (sortValue) params.push('sort=' + sortValue);
+
+            newUrl += params.join('&');
+
+            // Переходим по новому URL
+            window.location.href = newUrl;
+        });
+    </script>
 {% endblock %}

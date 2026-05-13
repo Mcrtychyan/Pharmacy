@@ -38,7 +38,37 @@ def category_detail(request, slug):
 
 
 def product_list(request):
-    products = Product.objects.all().order_by('-created_at')
+    products = Product.objects.all()
+
+    # Получаем параметры из GET запроса
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    sort_by = request.GET.get('sort')
+
+    # Фильтрация по цене (От и До)
+    if min_price:
+        try:
+            min_price = int(min_price)
+            products = products.filter(price__gte=min_price)
+        except ValueError:
+            pass
+
+    if max_price:
+        try:
+            max_price = int(max_price)
+            products = products.filter(price__lte=max_price)
+        except ValueError:
+            pass
+
+    # Сортировка товаров
+    if sort_by == 'price_asc':
+        products = products.order_by('price')  # По возрастанию цены
+    elif sort_by == 'price_desc':
+        products = products.order_by('-price')  # По убыванию цены
+    else:
+        products = products.order_by('-created_at')  # По новизне (по умолчанию)
+
+    # Пагинация
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
