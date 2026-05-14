@@ -17,7 +17,7 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
-    # Используем ImageUploaderWidget 1для 11поля12 icon_1image pip freeze requirements.txt
+    # Используем ImageUploaderWidget 1дл123я 11поля12 icon_1image pip freeze requirements.txt
     formfield_overrides = {
         models.ImageField: {'widget': ImageUploaderWidget},
     }
