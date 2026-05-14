@@ -1,6 +1,8 @@
 # catalog/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
+from image_uploader_widget.widgets import ImageUploaderWidget
+from django.db import models
 from .models import (
     Category, MedicineType, Product, Component,
     MedicineComponent, Orders, OrderMedicine,
@@ -9,26 +11,27 @@ from .models import (
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'slug', 'is_active', 'created_at')
+    list_display = ('id', 'name', 'slug', 'icon_preview', 'is_active', 'created_at')
     list_filter = ('is_active', 'created_at')
     search_fields = ('name', 'slug', 'description')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
+    # Используем ImageUploaderWidget для поля icon_image
+    formfield_overrides = {
+        models.ImageField: {'widget': ImageUploaderWidget},
+    }
+
     def icon_preview(self, obj):
         if obj.icon_image:
             return format_html(
-                '<img src="{}" width="40" height="40" style="border-radius: 8px; object-fit: cover;" />',
+                '<img src="{}" width="50" height="50" style="border-radius: 8px; object-fit: cover;" />',
                 obj.icon_image.url
-            )
-        elif obj.icon:
-            return format_html(
-                '<i class="fas {}" style="font-size: 24px; color: #2ecc71;"></i>',
-                obj.icon
             )
         return '-'
 
-    icon_preview.short_description = 'Иконка'
+    icon_preview.short_description = 'Иконка (превью)'
+
 
 @admin.register(MedicineType)
 class MedicineTypeAdmin(admin.ModelAdmin):
@@ -45,7 +48,7 @@ class MedicineComponentInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'medicine_type', 'price', 'quantity', 'created_at')
+    list_display = ('id', 'name', 'category', 'medicine_type', 'price', 'quantity', 'image_preview', 'created_at')
     list_display_links = ('name',)
     list_editable = ('price', 'quantity')
     list_filter = ('category', 'medicine_type', 'created_at')
@@ -54,6 +57,11 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
     inlines = [MedicineComponentInline]
 
+    # Используем ImageUploaderWidget для поля image
+    formfield_overrides = {
+        models.ImageField: {'widget': ImageUploaderWidget},
+    }
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'category', 'medicine_type', 'description')
@@ -61,8 +69,9 @@ class ProductAdmin(admin.ModelAdmin):
         ('Цены и наличие', {
             'fields': ('price', 'quantity')
         }),
-        ('Изображение', {  # ЭТОТ БЛОК ДОЛЖЕН БЫТЬ
+        ('Изображение', {
             'fields': ('image',),
+            'description': 'Загрузите изображение товара (рекомендуемый размер: 300x300 пикселей)'
         }),
         ('Системная информация', {
             'fields': ('created_at',),
@@ -73,11 +82,13 @@ class ProductAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             return format_html(
-                '<img src="{}" width="100" height="100" style="border-radius: 8px; object-fit: cover;" />',
+                '<img src="{}" width="50" height="50" style="border-radius: 8px; object-fit: cover;" />',
                 obj.image.url
             )
-        return 'Нет изображения'
+        return '-'
+
     image_preview.short_description = 'Превью'
+
 
 @admin.register(Component)
 class ComponentAdmin(admin.ModelAdmin):
@@ -129,5 +140,3 @@ class OrderMedicineAdmin(admin.ModelAdmin):
     list_display = ('id', 'order', 'medicine', 'quantity')
     list_filter = ('order', 'medicine')
     search_fields = ('order__id', 'medicine__name')
-
-

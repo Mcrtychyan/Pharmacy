@@ -13,8 +13,14 @@
                 <div class="card mb-3 border-0 shadow-sm">
                     <div class="card-body">
                         <div class="row align-items-center">
+                            <!-- ИЗОБРАЖЕНИЕ ТОВАРА - ИСПРАВЛЕНО -->
                             <div class="col-md-2 text-center">
-                                <i class="fas fa-pills fa-3x text-primary"></i>
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                         style="width: 80px; height: 80px; object-fit: contain;">
+                                {% else %}
+                                    <i class="fas fa-pills fa-3x text-primary"></i>
+                                {% endif %}
                             </div>
                             <div class="col-md-4">
                                 <h6>{{ item.product.name }}</h6>

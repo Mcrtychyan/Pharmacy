@@ -53,43 +53,44 @@
         <div class="row g-4">
             {% for product in products %}
             <div class="col-md-3 col-sm-6">
+                <!-- Вся карточка теперь обернута в ссылку на детальную страницу -->
                 <div class="card h-100 border-0 shadow-sm product-card">
-                    <div class="card-body text-center">
-                        <!-- ИСПРАВЛЕНО: Добавлено отображение изображения товара -->
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}"
-                                 style="width: 100%; height: 150px; object-fit: contain; margin-bottom: 15px;">
-                        {% else %}
-                            <i class="fas fa-pills fa-4x text-primary mb-3"></i>
-                        {% endif %}
+                    <a href="{% url 'product_detail' product.id %}" class="text-decoration-none">
+                        <div class="card-body text-center">
+                            <!-- Изображение товара -->
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                     style="width: 100%; height: 150px; object-fit: contain; margin-bottom: 15px;">
+                            {% else %}
+                                <i class="fas fa-pills fa-4x text-primary mb-3"></i>
+                            {% endif %}
 
-                        <h6 class="card-title">{{ product.name }}</h6>
-                        <p class="text-muted small">{{ product.category.name }}</p>
-                        <div class="mb-2">
-                            <span class="h5 text-danger fw-bold">{{ product.price }} ₽</span>
+                            <h6 class="card-title text-dark">{{ product.name }}</h6>
+                            <p class="text-muted small">{{ product.category.name }}</p>
+                            <div class="mb-2">
+                                <span class="h5 text-danger fw-bold">{{ product.price }} ₽</span>
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star text-warning"></i>
+                                <i class="fas fa-star-half-alt text-warning"></i>
+                            </div>
                         </div>
-                        <div class="rating">
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star text-warning"></i>
-                            <i class="fas fa-star-half-alt text-warning"></i>
-                        </div>
-                        <div class="mt-3 d-grid gap-2">
-                            <!-- КНОПКА В КОРЗИНУ -->
+                    </a>
+                    <div class="card-footer bg-white border-0 pb-3">
+                        <div class="d-grid gap-2">
+                            <!-- КНОПКА В КОРЗИНУ (отдельная, чтобы не переходила по ссылке) -->
                             {% if product.quantity > 0 %}
-                                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-success btn-sm">
+                                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-success btn-sm" onclick="event.stopPropagation();">
                                     <i class="fas fa-cart-plus"></i> В корзину
                                 </a>
                             {% else %}
-                                <button class="btn btn-secondary btn-sm" disabled>
+                                <button class="btn btn-secondary btn-sm" disabled onclick="event.stopPropagation();">
                                     <i class="fas fa-ban"></i> Нет в наличии
                                 </button>
                             {% endif %}
-                            <!-- КНОПКА ПОДРОБНЕЕ -->
-                            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-info-circle"></i> Подробнее
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -109,6 +110,7 @@
         }
         .product-card {
             transition: all 0.3s;
+            overflow: hidden;
         }
         .product-card:hover {
             transform: translateY(-5px);
@@ -119,6 +121,12 @@
         }
         .product-card img {
             transition: transform 0.3s;
+        }
+        .product-card a {
+            display: block;
+        }
+        .card-footer .btn:hover {
+            transform: none;
         }
     </style>
 {% endblock %}
