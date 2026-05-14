@@ -17,7 +17,7 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
-    # Используем ImageUploaderWidget 1для 1поля icon_image
+    # Используем ImageUploaderWidget 1для 11поля icon_image
     formfield_overrides = {
         models.ImageField: {'widget': ImageUploaderWidget},
     }
