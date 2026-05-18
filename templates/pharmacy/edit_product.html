@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование товара - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Заголовок -->
+            <div class="mb-4">
+                <a href="{% url 'catalog:pharmacist_dashboard' %}" class="text-decoration-none text-muted">
+                    <i class="fas fa-arrow-left"></i> Назад к списку
+                </a>
+                <h1 class="fw-bold mt-3">
+                    <i class="fas fa-edit text-primary"></i>
+                    Редактирование товара
+                </h1>
+                <p class="text-muted">Измените информацию о товаре</p>
+            </div>
+
+            <!-- Форма -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Название -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-tag text-danger"></i> Название товара <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="name" class="form-control form-control-lg" value="{{ product.name }}" required>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-align-left text-info"></i> Описание <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="description" class="form-control" rows="6" required>{{ product.description }}</textarea>
+                        </div>
+
+                        <!-- Цена и количество -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-ruble-sign text-success"></i> Цена <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" name="price" class="form-control" value="{{ product.price }}" required>
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-boxes text-warning"></i> Количество <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" name="quantity" class="form-control" value="{{ product.quantity }}" required>
+                            </div>
+                        </div>
+
+                        <!-- Категория и тип -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-folder text-primary"></i> Категория <span class="text-danger">*</span>
+                                </label>
+                                <select name="category" class="form-select" required>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}" {% if category.id == product.category.id %}selected{% endif %}>
+                                            {{ category.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-pills text-secondary"></i> Тип лекарства
+                                </label>
+                                <select name="medicine_type" class="form-select">
+                                    <option value="">Выберите тип</option>
+                                    {% for type in medicine_types %}
+                                        <option value="{{ type.id }}" {% if type.id == product.medicine_type.id %}selected{% endif %}>
+                                            {{ type.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Компоненты -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-flask text-purple"></i> Действующие компоненты
+                            </label>
+                            <select name="components" class="form-select" multiple size="5">
+                                {% for component in components %}
+                                    <option value="{{ component.id }}" {% if component.id in current_components %}selected{% endif %}>
+                                        {{ component.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Удерживайте Ctrl (или Cmd на Mac) для выбора нескольких компонентов</small>
+                        </div>
+
+                        <!-- Изображение -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-image text-purple"></i> Изображение товара
+                            </label>
+                            <div class="border rounded p-3 text-center" style="background-color: #f8f9fa;">
+                                <div id="imagePreview" class="mb-3">
+                                    {% if product.image %}
+                                        <img id="previewImg" src="{{ product.image.url }}" alt="{{ product.name }}"
+                                             style="max-width: 200px; max-height: 200px; border-radius: 10px;">
+                                    {% else %}
+                                        <img id="previewImg" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 10px; display: none;">
+                                    {% endif %}
+                                </div>
+                                <input type="file" name="image" id="imageInput" class="d-none" accept="image/*">
+                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('imageInput').click()">
+                                    <i class="fas fa-upload"></i> {% if product.image %}Изменить{% else %}Выбрать{% endif %} изображение
+                                </button>
+                                {% if product.image %}
+                                    <small class="d-block mt-2 text-muted">Оставьте пустым, чтобы сохранить текущее изображение</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="fas fa-save"></i> Сохранить изменения
+                            </button>
+                            <a href="{% url 'catalog:pharmacist_dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById('previewImg');
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: #2ecc71;
+        box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+    }
+</style>
+{% endblock %}

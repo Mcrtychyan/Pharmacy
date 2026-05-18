@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
-
-from catalog.models import Category, Product, MedicineType, MedicineComponent, Orders, OrderMedicine
+from django.contrib.auth.decorators import login_required
+from catalog.models import Category, Product, MedicineType, MedicineComponent, Orders, OrderMedicine, Component
+from users.decorators import pharmacist_required
 
 
 def index(request):
@@ -62,11 +63,11 @@ def product_list(request):
 
     # Сортировка товаров
     if sort_by == 'price_asc':
-        products = products.order_by('price')  # По возрастанию цены
+        products = products.order_by('price')
     elif sort_by == 'price_desc':
-        products = products.order_by('-price')  # По убыванию цены
+        products = products.order_by('-price')
     else:
-        products = products.order_by('-created_at')  # По новизне (по умолчанию)
+        products = products.order_by('-created_at')
 
     # Пагинация
     paginator = Paginator(products, 12)
@@ -78,9 +79,11 @@ def product_list(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    components = MedicineComponent.objects.filter(medicine=product)
 
     context = {
         'product': product,
+        'components': components,
     }
     return render(request, 'products/product_detail.html', context)
 
@@ -145,3 +148,133 @@ def order_detail(request, order_id):
 
 def contacts(request):
     return render(request, 'components/contacts.html')
+
+
+# ========== ФУНКЦИИ ДЛЯ ФАРМАЦЕВТА ==========
+
+@login_required
+def pharmacist_dashboard(request):
+    """Панель управления фармацевта - показывает все товары"""
+    if request.user.role not in ['pharmacist', 'admin']:
+        messages.error(request, 'У вас нет доступа к этой странице')
+        return redirect('index')
+
+    products = Product.objects.all().order_by('-created_at')
+
+    context = {
+        'products': products,
+    }
+    return render(request, 'pharmacy/dashboard.html', context)
+
+
+@pharmacist_required
+def add_product(request):
+    """Добавление нового товара"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        quantity = request.POST.get('quantity')
+        category_id = request.POST.get('category')
+        medicine_type_id = request.POST.get('medicine_type')
+        image = request.FILES.get('image')
+        components = request.POST.getlist('components')
+
+        if not all([name, description, price, quantity, category_id]):
+            messages.error(request, 'Пожалуйста, заполните все обязательные поля')
+            return redirect('catalog:add_product')
+
+        slug = name.lower().replace(' ', '-')
+
+        product = Product(
+            name=name,
+            slug=slug,
+            description=description,
+            price=price,
+            quantity=quantity,
+            category_id=category_id,
+            medicine_type_id=medicine_type_id if medicine_type_id else None,
+            image=image
+        )
+        product.save()
+
+        # Добавляем компоненты
+        for component_id in components:
+            MedicineComponent.objects.create(
+                medicine=product,
+                component_id=component_id
+            )
+
+        messages.success(request, f'Товар "{name}" успешно добавлен!')
+        return redirect('catalog:pharmacist_dashboard')
+
+    categories = Category.objects.filter(is_active=True)
+    medicine_types = MedicineType.objects.all()
+    components = Component.objects.all()
+
+    context = {
+        'categories': categories,
+        'medicine_types': medicine_types,
+        'components': components,
+    }
+    return render(request, 'pharmacy/add_product.html', context)
+
+
+@pharmacist_required
+def edit_product(request, pk):
+    """Редактирование товара"""
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == 'POST':
+        product.name = request.POST.get('name')
+        product.description = request.POST.get('description')
+        product.price = request.POST.get('price')
+        product.quantity = request.POST.get('quantity')
+        product.category_id = request.POST.get('category')
+        product.medicine_type_id = request.POST.get('medicine_type')
+        product.slug = product.name.lower().replace(' ', '-')
+
+        if request.FILES.get('image'):
+            product.image = request.FILES.get('image')
+
+        product.save()
+
+        # Обновляем компоненты
+        components = request.POST.getlist('components')
+        MedicineComponent.objects.filter(medicine=product).delete()
+        for component_id in components:
+            MedicineComponent.objects.create(
+                medicine=product,
+                component_id=component_id
+            )
+
+        messages.success(request, f'Товар "{product.name}" обновлен!')
+        return redirect('catalog:pharmacist_dashboard')
+
+    categories = Category.objects.filter(is_active=True)
+    medicine_types = MedicineType.objects.all()
+    components = Component.objects.all()
+    current_components = product.medicine_components.values_list('component_id', flat=True)
+
+    context = {
+        'product': product,
+        'categories': categories,
+        'medicine_types': medicine_types,
+        'components': components,
+        'current_components': current_components,
+    }
+    return render(request, 'pharmacy/edit_product.html', context)
+
+
+@pharmacist_required
+def delete_product(request, pk):
+    """Удаление товара"""
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == 'POST':
+        product_name = product.name
+        product.delete()
+        messages.success(request, f'Товар "{product_name}" удален!')
+        return redirect('catalog:pharmacist_dashboard')
+
+    return render(request, 'pharmacy/delete_product.html', {'product': product})

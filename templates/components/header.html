@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'index' %}">
+        <a class="navbar-brand" href="{% url 'catalog:index' %}">
             <i class="fas fa-hospital"></i>
             <span class="brand-green">Аптека</span> Здоровье
         </a>
@@ -10,7 +10,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <form class="d-flex mx-auto w-50" action="{% url 'product_list' %}" method="get">
+            <form class="d-flex mx-auto w-50" action="{% url 'catalog:product_list' %}" method="get">
                 <input class="form-control me-2" type="search" name="q" placeholder="Поиск лекарств..." aria-label="Search">
                 <button class="btn btn-outline-light" type="submit">
                     <i class="fas fa-search"></i>
@@ -19,10 +19,21 @@
 
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link position-relative cart-icon" href="{% url 'cart_detail' %}">
+                    <a class="nav-link position-relative cart-icon" href="{% url 'catalog:cart_detail' %}">
                         <i class="fas fa-shopping-cart fa-lg"></i>
                     </a>
                 </li>
+
+                <!-- КНОПКА ДЛЯ ФАРМАЦЕВТА -->
+                {% if user.is_authenticated %}
+                    {% if user.role == 'pharmacist' or user.role == 'admin' %}
+                        <li class="nav-item me-2">
+                            <a class="nav-link btn-pharmacy" href="{% url 'catalog:pharmacist_dashboard' %}">
+                                <i class="fas fa-prescription-bottle"></i> Панель фармацевта
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endif %}
 
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -66,22 +77,22 @@
         <div class="collapse navbar-collapse" id="categoryNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link category-link" href="{% url 'index' %}">
+                    <a class="nav-link category-link" href="{% url 'catalog:index' %}">
                         <i class="fas fa-home"></i> Главная
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link category-link" href="{% url 'product_list' %}">
+                    <a class="nav-link category-link" href="{% url 'catalog:product_list' %}">
                         <i class="fas fa-pills"></i> Все товары
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link category-link" href="{% url 'category_list' %}">
+                    <a class="nav-link category-link" href="{% url 'catalog:category_list' %}">
                         <i class="fas fa-tags"></i> Категории
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link category-link" href="{% url 'contacts' %}">
+                    <a class="nav-link category-link" href="{% url 'catalog:contacts' %}">
                         <i class="fas fa-phone"></i> Контакты
                     </a>
                 </li>
@@ -91,6 +102,23 @@
 </nav>
 
 <style>
+    /* Стили для кнопки фармацевта */
+    .btn-pharmacy {
+        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+        border-radius: 25px !important;
+        padding: 8px 20px !important;
+        margin: 0 5px !important;
+        transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+        border: none !important;
+    }
+
+    .btn-pharmacy:hover {
+        background: linear-gradient(135deg, #c0392b, #a93226) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+
     /* Стили для кнопок входа/регистрации */
     .btn-login, .btn-register {
         border-radius: 25px !important;
@@ -236,7 +264,7 @@
 
     /* Адаптивность */
     @media (max-width: 768px) {
-        .btn-login, .btn-register {
+        .btn-login, .btn-register, .btn-pharmacy {
             margin: 5px 0 !important;
             text-align: center;
         }

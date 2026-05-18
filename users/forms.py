@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-
 from django.core.exceptions import ValidationError
 import re
 from .models import CustomUser
@@ -86,16 +85,19 @@ class RegisterForm(UserCreationForm):
 
         return email
 
-def save(self, commit=True):
-    user = super().save(commit=False)
-    user.first_name = self.cleaned_data.get('full_name')
-    user.email = self.cleaned_data.get('email')
-    user.phone = self.cleaned_data.get('phone')
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.full_name = self.cleaned_data.get('full_name')
+        user.email = self.cleaned_data.get('email')
+        user.phone = self.cleaned_data.get('phone')
+        # По умолчанию при регистрации даем роль 'user'
+        user.role = 'user'
 
-    if commit:
-        user.save()
+        if commit:
+            user.save()
 
-    return user
+        return user
+
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label='Логин', max_length=150)
@@ -113,3 +115,22 @@ class LoginForm(AuthenticationForm):
             field.widget.attrs.update({
                 'class': 'form-control'
             })
+
+
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'full_name', 'phone', 'role', 'is_active')
+        labels = {
+            'username': 'Логин',
+            'email': 'Email',
+            'full_name': 'ФИО',
+            'phone': 'Телефон',
+            'role': 'Роль',
+            'is_active': 'Активен',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
